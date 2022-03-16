@@ -1,0 +1,26 @@
+{
+  "name": "questions-and-topics",
+  "version": "1.0.0",
+  "description": "Backend assignment I did as part of a job application",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sasarkman/questions-and-topics.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sasarkman/questions-and-topics/issues"
+  },
+  "homepage": "https://github.com/sasarkman/questions-and-topics#readme",
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "express-validator": "^6.14.0",
+    "mongoose": "^6.2.6"
+  }
+}
