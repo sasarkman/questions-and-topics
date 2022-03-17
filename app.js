@@ -42,13 +42,12 @@ app.get('/search', query('q').trim().notEmpty(), function(req, res) {
 		return res.status(400).send('Please specify a topic in the "q" query string');
 	}
 
-
 	// User's topic input
-	const topic = req.query.q;
+	const userTopic = req.query.q;
 
 	// User's topic as an exact match, case-insensitive query
 	const query = {
-		'$regex': `^${topic}$`,
+		'$regex': `^${userTopic}$`,
 		'$options': 'i'
 	}
 
@@ -58,57 +57,58 @@ app.get('/search', query('q').trim().notEmpty(), function(req, res) {
 		{'Topic Level 1': query}, 
 		// We only care for columns "Topic Level 2" and "Topic Level 2"
 		{ '_id': 0, 'Topic Level 2': 1, 'Topic Level 3': 1}, 
-		function(err, docs) {	
-		if(err || !docs.length) return res.status(400).send(`No such topics found for topic "${topic}"`)
+		function(err, topics) {
+			if(err || !topics.length) return res.status(400).send(`No such topics found for topic "${userTopic}"`)
 
-		// Based on topic level 1, compile a list of all unique topics from level 2 and 3
-		var targetTopics = []
-		for(var topics in docs) {
-			if(docs[topics]['Topic Level 2'] != '' && !targetTopics.includes(docs[topics]['Topic Level 2'])) targetTopics = targetTopics.concat(docs[topics]['Topic Level 2']);
-			if(docs[topics]['Topic Level 3'] != '' && !targetTopics.includes(docs[topics]['Topic Level 3'])) targetTopics = targetTopics.concat(docs[topics]['Topic Level 3']);
-		}
-
-		// Find all questions whose annotations contain any of our target topics
-		Questions.find(
-			{
-				$or: [
-					{'Annotation 1': {$in: targetTopics}},
-					{'Annotation 2': {$in: targetTopics}},
-					{'Annotation 3': {$in: targetTopics}},
-					{'Annotation 4': {$in: targetTopics}},
-					{'Annotation 5': {$in: targetTopics}},
-				]
-			},
-			// Define specific columns we want returned
-			{ 
-				"_id": 0, 
-				"Question number": 1, 
-				"Annotation 1": 1, 
-				"Annotation 2": 1, 
-				"Annotation 3": 1, 
-				"Annotation 4": 1, 
-				"Annotation 5": 1
-			},
-			function(err, docs) {
-				if(err || !docs.length) return res.status(400).send(`No such questions found for topic "${topic}"`)
-				else {
-					var cleanedQuestions = [];
-
-					// Remove questions whose annotations are not a sub-topic of our Level 1 topic
-					docs.forEach(element => {
-						if(!targetTopics.includes(element['Annotation 1']) && element['Annotation 1'] != "") return;
-						if(!targetTopics.includes(element['Annotation 2']) && element['Annotation 2'] != "") return;
-						if(!targetTopics.includes(element['Annotation 3']) && element['Annotation 3'] != "") return;
-						if(!targetTopics.includes(element['Annotation 4']) && element['Annotation 4'] != "") return;
-						if(!targetTopics.includes(element['Annotation 5']) && element['Annotation 5'] != "") return;
-						cleanedQuestions = cleanedQuestions.concat(element['Question number']);
-					})
-
-					return res.status(200).send(cleanedQuestions);
-				}
+			// Based on topic level 1, compile a list of all unique topics from level 2 and 3
+			var targetTopics = []
+			for(var topic in topics) {
+				if(topics[topic]['Topic Level 2'] != '' && !targetTopics.includes(topics[topic]['Topic Level 2'])) targetTopics = targetTopics.concat(topics[topic]['Topic Level 2']);
+				if(topics[topic]['Topic Level 3'] != '' && !targetTopics.includes(topics[topic]['Topic Level 3'])) targetTopics = targetTopics.concat(topics[topic]['Topic Level 3']);
 			}
-		);
-	})
+
+			// Find all questions whose annotations contain any of our target topics
+			Questions.find(
+				{
+					$or: [
+						{'Annotation 1': {$in: targetTopics}},
+						{'Annotation 2': {$in: targetTopics}},
+						{'Annotation 3': {$in: targetTopics}},
+						{'Annotation 4': {$in: targetTopics}},
+						{'Annotation 5': {$in: targetTopics}},
+					]
+				},
+				// Define specific columns we want returned
+				{ 
+					"_id": 0, 
+					"Question number": 1, 
+					"Annotation 1": 1, 
+					"Annotation 2": 1, 
+					"Annotation 3": 1, 
+					"Annotation 4": 1, 
+					"Annotation 5": 1
+				},
+				function(err, questions) {
+					if(err || !questions.length) return res.status(400).send(`No such questions found for topic "${userTopic}"`)
+					else {
+						var cleanedQuestions = [];
+
+						// Remove questions whose annotations are not a sub-topic of our Level 1 topic
+						questions.forEach(question => {
+							if(!targetTopics.includes(question['Annotation 1']) && question['Annotation 1'] != "") return;
+							if(!targetTopics.includes(question['Annotation 2']) && question['Annotation 2'] != "") return;
+							if(!targetTopics.includes(question['Annotation 3']) && question['Annotation 3'] != "") return;
+							if(!targetTopics.includes(question['Annotation 4']) && question['Annotation 4'] != "") return;
+							if(!targetTopics.includes(question['Annotation 5']) && question['Annotation 5'] != "") return;
+							cleanedQuestions = cleanedQuestions.concat(question['Question number']);
+						})
+
+						return res.status(200).send(cleanedQuestions);
+					}
+				}
+			);
+		}
+	)
 });
 
 // Express IP and port info
