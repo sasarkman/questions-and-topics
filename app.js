@@ -42,12 +42,24 @@ app.get('/search', query('q').trim().notEmpty(), function(req, res) {
 		return res.status(400).send('Please specify a topic in the "q" query string');
 	}
 
-	// User's topic query
-	const query = req.query.q;
+
+	// User's topic input
+	const topic = req.query.q;
+
+	// User's topic as an exact match, case-insensitive query
+	const query = {
+		'$regex': `^${topic}$`,
+		'$options': 'i'
+	}
 
 	// Get all topics whose Topic Level 1 match the query provided
-	Topics.find({'Topic Level 1': query}, { '_id': 0, 'Topic Level 2': 1, 'Topic Level 3': 1}, function(err, docs) {	
-		if(err || !docs.length) return res.status(400).send(`No such topics found for topic "${query}"`)
+	Topics.find(
+		// Our query parameter
+		{'Topic Level 1': query}, 
+		// We only care for columns "Topic Level 2" and "Topic Level 2"
+		{ '_id': 0, 'Topic Level 2': 1, 'Topic Level 3': 1}, 
+		function(err, docs) {	
+		if(err || !docs.length) return res.status(400).send(`No such topics found for topic "${topic}"`)
 
 		// Based on topic level 1, compile a list of all unique topics from level 2 and 3
 		var targetTopics = []
@@ -78,7 +90,7 @@ app.get('/search', query('q').trim().notEmpty(), function(req, res) {
 				"Annotation 5": 1
 			},
 			function(err, docs) {
-				if(err || !docs.length) return res.status(400).send(`No such questions found for topic "${query}"`)
+				if(err || !docs.length) return res.status(400).send(`No such questions found for topic "${topic}"`)
 				else {
 					var cleanedQuestions = [];
 
