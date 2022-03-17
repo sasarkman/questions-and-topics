@@ -5,22 +5,18 @@ const bodyParser = require('body-parser');
 // Initialize express
 const app = express();
 
-app.use(bodyParser.urlencoded({
-	extended: true
- }));
-app.use(bodyParser.json());
-
 // Module for credentials loading
 require('dotenv').config();
+
+// Console logging
+const morgan = require('morgan');
+app.use(morgan('short'));
 
 // Mongodb connection string
 const mongo_url = process.env.MONGODB_URL;
 
 // Load object relational model module
 const mongoose = require('mongoose');
-
-// Load user input validator
-const { query, validationResult } = require('express-validator');
 
 mongoose.connect(mongo_url, { useNewUrlParser:true, useUnifiedTopology:true }, (err) => {
 	if (err) {
@@ -31,18 +27,28 @@ mongoose.connect(mongo_url, { useNewUrlParser:true, useUnifiedTopology:true }, (
 	console.log('Connected to database: ' + mongo_url);
 });
 
+// Load user input validator
+const { query, validationResult } = require('express-validator');
+
+// Database models
 const Questions = require('./models/questions-model');
 const Topics = require('./models/topics-model');
-app.get('/search', query('q').notEmpty(), function(req, res) {
+
+// The /search route (GET) takes in a root topic and returns a list of question numbers whose annotations contain sub-topics belonging to the root topic
+app.get('/search', query('q').trim().notEmpty(), function(req, res) {
+	// Validate input
 	const errors = validationResult(req);
 	if(!errors.isEmpty()) {
 		return res.status(400).send('Please specify a topic in the "q" query string');
 	}
 
+	// User's topic query
 	const query = req.query.q;
 
 	// Get all topics whose Topic Level 1 match the query provided
-	Topics.find({'Topic Level 1': query}, { '_id': 0, 'Topic Level 2': 1, 'Topic Level 3': 1}, function(err, docs) {
+	Topics.find({'Topic Level 1': query}, { '_id': 0, 'Topic Level 2': 1, 'Topic Level 3': 1}, function(err, docs) {	
+		if(err || !docs.length) return res.status(400).send(`No such topics found for topic "${query}"`)
+
 		// Based on topic level 1, compile a list of all unique topics from level 2 and 3
 		var targetTopics = []
 		for(var topics in docs) {
@@ -72,7 +78,7 @@ app.get('/search', query('q').notEmpty(), function(req, res) {
 				"Annotation 5": 1
 			},
 			function(err, docs) {
-				if(err || !docs.length) res.status(400).send('No such topic found')
+				if(err || !docs.length) return res.status(400).send(`No such questions found for topic "${query}"`)
 				else {
 					var cleanedQuestions = [];
 
