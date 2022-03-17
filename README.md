@@ -10,5 +10,5 @@ http://**host**/search/?q=**topic**, where:
     
 # returns
 - "No such topics found for topic", if topic doesn't exist
-- "No such questions found for topic", if questions whose annotations are all exactly contained in topic's sub-topics
-- [Q_1, Q_2, ... , Q_x], where Q is a question number whose annotations are all exactly contained in topic's sub-topics, x is amount of questions returned
+- "No such questions found for topic", if questions whose annotations are all exactly contained in topic's sub-topics don't exist
+- [Q_1, Q_2, ... , Q_x], where Q is a question number whose annotations are all exactly contained in topic's sub-topics, and x is the amount of questions returned
