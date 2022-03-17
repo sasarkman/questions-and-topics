@@ -17,7 +17,7 @@ http://**host**/search/?q=**topic**, where:
 # examples
 1. http://**host**/search/
     - Returns "Please specify a topic in the "q" query string"
-2. http://**host**/search/
+2. http://**host**/search/?q=test
     - Returns "No such topics found for topic "test""
 3. http://**host**/search/?q=Organisms and their Environment
     - Returns [16,18,57,93,102,113,157]
